@@ -1,0 +1,57 @@
+--- a/Controller/WiimController.Updates.cs
++++ b/Controller/WiimController.Updates.cs
+@@ -65,27 +65,13 @@
+ 
+     private void StartUpdateChecks()
+     {
+-        _updateTimer.Tick += async (_, _) => await CheckForUpdateAsync(manual: false);
+-        _updateTimer.Start();
+-        DispatcherTimer.RunOnce(() => _ = CheckForUpdateAsync(manual: false), TimeSpan.FromMinutes(1));
++        // RPM updates are supplied by the system package manager.
+     }
+ 
+     internal async Task CheckForUpdateAsync(bool manual)
+     {
+-        if (!manual && !_checkUpdates) return;
+-        var release = await GetLatestReleaseAsync();
+-        if (release == null)
+-        {
+-            if (manual) await Dialogs.MessageAsync(_settingsWindow, "Couldn't check for updates. Check the internet connection and try again.", UiScale);
+-            return;
+-        }
+-        if (!IsNewer(release.Version, AppVersion))
+-        {
+-            if (manual) await Dialogs.MessageAsync(_settingsWindow, $"Wiim Control {AppVersion} is the newest version.", UiScale);
+-            return;
+-        }
+-        if (!manual && (release.Version == _skippedVersion || release.Version == _promptedVersion)) return;
+-        await OfferUpdateAsync(release);
++        if (manual) await Dialogs.MessageAsync(_settingsWindow,
++            "Updates are managed by your system. Use Software or run: dnf upgrade wiim-control", UiScale);
+     }
+ 
+     private async Task OfferUpdateAsync(AppUpdate release)
+--- a/UI/SettingsWindow.cs
++++ b/UI/SettingsWindow.cs
+@@ -1978,19 +1978,9 @@
+                 ApplyScale(percent);
+             };
+             cards.Children.Add(Card("Appearance", LabeledRow("Scale", scale), Muted("Makes this window bigger or smaller.")));
+-            var checkUpdates = new ToggleSwitch { IsChecked = _owner._checkUpdates };
+-            checkUpdates.IsCheckedChanged += (_, _) => _owner.SetCheckUpdates(checkUpdates.IsChecked == true);
+-            var checkNow = Pill("Check now");
+-            checkNow.Click += async (_, _) =>
+-            {
+-                checkNow.IsEnabled = false;
+-                try { await _owner.CheckForUpdateAsync(manual: true); }
+-                finally { checkNow.IsEnabled = true; }
+-            };
+             cards.Children.Add(Card("Updates",
+-                ToggleRow("Check for new versions of Wiim Control", checkUpdates),
+-                LabeledRow($"You have version {AppVersion}", checkNow),
+-                Muted("When a new version is out, Wiim Control asks whether to download and install it.")));
++                Muted($"You have version {AppVersion}. Updates are managed by your system."),
++                Muted("Use Software or run: dnf upgrade wiim-control")));
+             cards.Children.Add(BuildBackupCard());
+ 
+             return Page("General", null, [], cards);

@@ -1,0 +1,92 @@
+%global debug_package %{nil}
+%global _build_id_links none
+%global commit @COMMIT@
+
+Name:           wiim-control
+Version:        @VERSION@
+Release:        @RELEASE@%{?dist}
+Summary:        Desktop controller for WiiM network audio devices
+License:        MIT AND LGPL-3.0-or-later AND OFL-1.1 AND BSD-3-Clause AND Apache-2.0
+URL:            https://github.com/yocksers/Wiim-Control
+Source0:        wiim-control-%{commit}.tar.gz
+Source1:        nuget-feed.tar.gz
+Patch0:         rpm-updates.patch
+ExclusiveArch:  x86_64
+BuildRequires:  dotnet-sdk-9.0
+BuildRequires:  desktop-file-utils
+BuildRequires:  python3
+Requires:       dotnet-runtime-9.0
+Requires:       fontconfig
+Requires:       libX11
+Requires:       libICE
+Requires:       libSM
+Requires:       libXi
+Requires:       libXcursor
+Requires:       libXrandr
+Requires:       libXrender
+Requires:       libXext
+Requires:       libxcb
+Requires:       libsecret
+Requires:       xdg-utils
+Requires:       hicolor-icon-theme
+
+# Private NuGet libraries must not become system-wide RPM providers.
+%global __provides_exclude_from ^%{_libdir}/wiim-control/.*$
+
+%description
+Control WiiM and LinkPlay devices from the desktop, including volume,
+playback, presets, equalizer, multiroom groups and Linux media controls.
+Built from upstream source using Fedora's .NET runtime. Updates are
+managed by DNF through the COPR repository.
+
+%prep
+%autosetup -n wiim-control-%{commit} -N
+sed -i 's/\r$//' Controller/WiimController.Updates.cs
+%autopatch -p1
+tar -xzf %{SOURCE1}
+
+%build
+export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+export DOTNET_CLI_HOME="$PWD/.dotnet" NUGET_PACKAGES="$PWD/.nuget"
+dotnet restore WiimControl.csproj -r linux-x64 \
+    -p:RuntimeIdentifiers=linux-x64 -p:SelfContained=false \
+    -p:NuGetAudit=false --source "$PWD/nuget-feed"
+dotnet publish WiimControl.csproj -c Release -r linux-x64 \
+    -p:RuntimeIdentifiers=linux-x64 -p:SelfContained=false \
+    -p:DebugType=none --no-restore -o publish
+
+%install
+install -d %{buildroot}%{_libdir}/%{name} %{buildroot}%{_bindir}
+cp -a publish/. %{buildroot}%{_libdir}/%{name}/
+ln -s %{_libdir}/%{name}/WiimControl %{buildroot}%{_bindir}/wiim-control
+ln -s wiim-control %{buildroot}%{_bindir}/WiimControl
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications \
+    --set-key=Exec --set-value=wiim-control installer/linux/wiim-control.desktop
+install -Dm644 Assets/tray.png %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/wiim-control.png
+
+%check
+desktop-file-validate %{buildroot}%{_datadir}/applications/wiim-control.desktop
+test -f publish/SMBLibrary.dll
+test -x publish/WiimControl
+# Verify the CLI can load the managed application and its framework without
+# opening a display or changing any device. No instance exists in the builder.
+set +e
+publish/WiimControl --settings > smoke.log 2>&1
+rc=$?
+set -e
+test "$rc" -eq 1
+grep -F "Wiim Control isn't running." smoke.log
+
+%files
+%license LICENSE
+%license nuget-licenses
+%doc README.md
+%{_bindir}/wiim-control
+%{_bindir}/WiimControl
+%{_libdir}/%{name}/
+%{_datadir}/applications/wiim-control.desktop
+%{_datadir}/icons/hicolor/256x256/apps/wiim-control.png
+
+%changelog
+* Sat Oct 17 2026 sos-michael <sos-michael@users.noreply.github.com> - @VERSION@-@RELEASE@
+- Package the upstream release for Fedora with DNF-managed updates.
