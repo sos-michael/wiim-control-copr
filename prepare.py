@@ -48,7 +48,7 @@ def main():
         env.update(DOTNET_CLI_HOME=str(work / 'dotnet'),
                    NUGET_PACKAGES=str(work / 'packages'))
         run('dotnet', 'restore', str(src / 'WiimControl.csproj'), '-r', 'linux-x64',
-            '-p:RuntimeIdentifiers=linux-x64', '-p:SelfContained=false',
+            '-p:TargetFramework=net10.0', '-p:RuntimeIdentifiers=linux-x64', '-p:SelfContained=false',
             '-p:NuGetAudit=false', env=env)
         feed = work / 'nuget-feed'
         licenses = work / 'nuget-licenses'

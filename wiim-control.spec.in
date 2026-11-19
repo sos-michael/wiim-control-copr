@@ -11,10 +11,10 @@ URL:            https://github.com/yocksers/Wiim-Control
 Source0:        wiim-control-%{commit}.tar.gz
 Source1:        nuget-feed.tar.gz
 ExclusiveArch:  x86_64
-BuildRequires:  dotnet-sdk-9.0
+BuildRequires:  dotnet-sdk-10.0
 BuildRequires:  desktop-file-utils
 BuildRequires:  python3
-Requires:       dotnet-runtime-9.0
+Requires:       dotnet-runtime-10.0
 Requires:       fontconfig
 Requires:       libX11
 Requires:       libICE
@@ -35,7 +35,7 @@ Requires:       hicolor-icon-theme
 %description
 Control WiiM and LinkPlay devices from the desktop, including volume,
 playback, presets, equalizer, multiroom groups and Linux media controls.
-Built from upstream source using Fedora's .NET runtime. Updates are
+Built from upstream source using the distribution's .NET runtime. Updates are
 available through the COPR repository.
 
 %prep
@@ -46,10 +46,10 @@ tar -xzf %{SOURCE1}
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_CLI_HOME="$PWD/.dotnet" NUGET_PACKAGES="$PWD/.nuget"
 dotnet restore WiimControl.csproj -r linux-x64 \
-    -p:RuntimeIdentifiers=linux-x64 -p:SelfContained=false \
+    -p:TargetFramework=net10.0 -p:RuntimeIdentifiers=linux-x64 -p:SelfContained=false \
     -p:NuGetAudit=false --source "$PWD/nuget-feed"
 dotnet publish WiimControl.csproj -c Release -r linux-x64 \
-    -p:RuntimeIdentifiers=linux-x64 -p:SelfContained=false \
+    -p:TargetFramework=net10.0 -p:RuntimeIdentifiers=linux-x64 -p:SelfContained=false \
     -p:DebugType=none --no-restore -o publish
 
 %install

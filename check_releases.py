@@ -146,8 +146,8 @@ def main():
         if args.dry_run:
             continue
         build = client.build_proxy.create_from_custom(
-            OWNER, PROJECT, script, script_chroot='fedora-44-x86_64',
-            script_builddeps=['git-core', 'python3', 'dotnet-sdk-9.0'],
+            OWNER, PROJECT, script, script_chroot='fedora-45-x86_64',
+            script_builddeps=['git-core', 'python3', 'dotnet-sdk-10.0'],
             script_resultdir='packaging/results')
         print(f'https://copr.fedorainfracloud.org/coprs/{OWNER}/{PROJECT}/build/{build.id}/', flush=True)
         records.insert(0, {'id': build.id, 'state': 'pending', 'meta': meta})

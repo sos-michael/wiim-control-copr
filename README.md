@@ -1,6 +1,6 @@
 # Wiim-Control RPMs
 
-Unofficial [Wiim-Control](https://github.com/yocksers/Wiim-Control) packages for Fedora 44 (x86_64).
+Unofficial [Wiim-Control](https://github.com/yocksers/Wiim-Control) packages for Fedora 44, Fedora 45, and CentOS Stream 10 (x86_64).
 
 ```sh
 sudo dnf copr enable grantson/wiim-control
