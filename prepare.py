@@ -71,8 +71,6 @@ def main():
     for key, value in {'COMMIT': a.commit, 'VERSION': version, 'RELEASE': str(a.release)}.items():
         spec = spec.replace('@' + key + '@', value)
     (out / 'wiim-control.spec').write_text(spec)
-    shutil.copy2(ROOT / 'rpm-updates.patch', out)
-    shutil.copy2(ROOT / 'rpm-settings.py', out)
 
 
 if __name__ == '__main__':

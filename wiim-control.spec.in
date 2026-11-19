@@ -10,8 +10,6 @@ License:        MIT AND LGPL-3.0-or-later AND OFL-1.1 AND BSD-3-Clause AND Apach
 URL:            https://github.com/yocksers/Wiim-Control
 Source0:        wiim-control-%{commit}.tar.gz
 Source1:        nuget-feed.tar.gz
-Source2:        rpm-settings.py
-Patch0:         rpm-updates.patch
 ExclusiveArch:  x86_64
 BuildRequires:  dotnet-sdk-9.0
 BuildRequires:  desktop-file-utils
@@ -38,13 +36,10 @@ Requires:       hicolor-icon-theme
 Control WiiM and LinkPlay devices from the desktop, including volume,
 playback, presets, equalizer, multiroom groups and Linux media controls.
 Built from upstream source using Fedora's .NET runtime. Updates are
-managed by DNF through the COPR repository.
+available through the COPR repository.
 
 %prep
-%autosetup -n wiim-control-%{commit} -N
-sed -i 's/\r$//' Controller/WiimController.Updates.cs
-%autopatch -p1
-python3 %{SOURCE2}
+%autosetup -n wiim-control-%{commit}
 tar -xzf %{SOURCE1}
 
 %build

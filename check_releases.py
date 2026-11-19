@@ -16,7 +16,7 @@ OWNER, PROJECT = 'grantson', 'wiim-control'
 UPSTREAM = 'yocksers/Wiim-Control'
 START = '2026-10-17T17:24:01Z'
 FINISHED = {'succeeded', 'failed', 'canceled', 'skipped'}
-RECIPE_FILES = ('prepare.py', 'wiim-control.spec.in', 'rpm-updates.patch', 'rpm-settings.py')
+RECIPE_FILES = ('prepare.py', 'wiim-control.spec.in')
 
 
 def github(endpoint):
