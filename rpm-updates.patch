@@ -31,27 +31,3 @@
      }
  
      private async Task OfferUpdateAsync(AppUpdate release)
---- a/UI/SettingsWindow.cs
-+++ b/UI/SettingsWindow.cs
-@@ -1978,19 +1978,9 @@
-                 ApplyScale(percent);
-             };
-             cards.Children.Add(Card("Appearance", LabeledRow("Scale", scale), Muted("Makes this window bigger or smaller.")));
--            var checkUpdates = new ToggleSwitch { IsChecked = _owner._checkUpdates };
--            checkUpdates.IsCheckedChanged += (_, _) => _owner.SetCheckUpdates(checkUpdates.IsChecked == true);
--            var checkNow = Pill("Check now");
--            checkNow.Click += async (_, _) =>
--            {
--                checkNow.IsEnabled = false;
--                try { await _owner.CheckForUpdateAsync(manual: true); }
--                finally { checkNow.IsEnabled = true; }
--            };
-             cards.Children.Add(Card("Updates",
--                ToggleRow("Check for new versions of Wiim Control", checkUpdates),
--                LabeledRow($"You have version {AppVersion}", checkNow),
--                Muted("When a new version is out, Wiim Control asks whether to download and install it.")));
-+                Muted($"You have version {AppVersion}. Updates are managed by your system."),
-+                Muted("Use Software or run: dnf upgrade wiim-control")));
-             cards.Children.Add(BuildBackupCard());
- 
-             return Page("General", null, [], cards);

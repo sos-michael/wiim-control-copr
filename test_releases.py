@@ -1,4 +1,8 @@
+import subprocess
 import unittest
+from unittest.mock import Mock, patch
+
+import check_releases as checker
 from check_releases import decision, source_script
 
 
@@ -33,6 +37,23 @@ class ReleaseDecisions(unittest.TestCase):
 
     def test_other_release_does_not_hide_new_release(self):
         self.assertEqual(decision([self.record()], 'v1.21', 'b' * 40, 'old'), (True, None, 1))
+
+    def test_one_failure_does_not_block_other_releases(self):
+        client = Mock()
+        client.build_proxy.create_from_custom.side_effect = [Mock(id=2), Mock(id=1)]
+        releases = [{'tag_name': 'v1.22'}, {'tag_name': 'v1.35'}]
+        with patch.object(checker, 'releases', return_value=releases), \
+             patch.object(checker, 'github', return_value={'sha': 'a' * 40}), \
+             patch.object(checker, 'history', return_value=[]), \
+             patch('copr.v3.Client.create_from_config_file', return_value=client), \
+             patch('sys.argv', ['check_releases.py', '--wait']), \
+             patch.object(checker, 'watch', side_effect=[subprocess.CalledProcessError(4, 'watch'), None]):
+            with self.assertRaisesRegex(SystemExit, r'v1.35 \(2\)'):
+                checker.main()
+        calls = client.build_proxy.create_from_custom.call_args_list
+        self.assertEqual(len(calls), 2)
+        self.assertIn('--tag v1.35', calls[0].args[2])
+        self.assertIn('--tag v1.22', calls[1].args[2])
 
     def test_source_is_pinned_and_under_copr_size_limit(self):
         script = source_script(self.record()['meta'], 'b' * 40)

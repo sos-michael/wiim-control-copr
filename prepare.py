@@ -72,6 +72,7 @@ def main():
         spec = spec.replace('@' + key + '@', value)
     (out / 'wiim-control.spec').write_text(spec)
     shutil.copy2(ROOT / 'rpm-updates.patch', out)
+    shutil.copy2(ROOT / 'rpm-settings.py', out)
 
 
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ License:        MIT AND LGPL-3.0-or-later AND OFL-1.1 AND BSD-3-Clause AND Apach
 URL:            https://github.com/yocksers/Wiim-Control
 Source0:        wiim-control-%{commit}.tar.gz
 Source1:        nuget-feed.tar.gz
+Source2:        rpm-settings.py
 Patch0:         rpm-updates.patch
 ExclusiveArch:  x86_64
 BuildRequires:  dotnet-sdk-9.0
@@ -43,6 +44,7 @@ managed by DNF through the COPR repository.
 %autosetup -n wiim-control-%{commit} -N
 sed -i 's/\r$//' Controller/WiimController.Updates.cs
 %autopatch -p1
+python3 %{SOURCE2}
 tar -xzf %{SOURCE1}
 
 %build

@@ -16,7 +16,7 @@ OWNER, PROJECT = 'grantson', 'wiim-control'
 UPSTREAM = 'yocksers/Wiim-Control'
 START = '2026-10-17T17:24:01Z'
 FINISHED = {'succeeded', 'failed', 'canceled', 'skipped'}
-RECIPE_FILES = ('prepare.py', 'wiim-control.spec.in', 'rpm-updates.patch')
+RECIPE_FILES = ('prepare.py', 'wiim-control.spec.in', 'rpm-updates.patch', 'rpm-settings.py')
 
 
 def github(endpoint):
@@ -117,7 +117,8 @@ def main():
     recipe = recipe_hash()
     packaging_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     records = history(client)
-    for release in all_releases:
+    failures = []
+    for release in reversed(all_releases):
         tag = release['tag_name']
         commit = github('commits/' + urllib.parse.quote(tag, safe=''))['sha']
         if not re.fullmatch(r'[a-f0-9]{40}', commit):
@@ -127,7 +128,11 @@ def main():
         if pending:
             print(f'{tag}: build {pending} is still active', flush=True)
             if args.wait and not args.dry_run:
-                watch(pending)
+                try:
+                    watch(pending)
+                except subprocess.CalledProcessError:
+                    failures.append((tag, pending))
+                    continue
                 records = history(client)
                 needed, pending, serial = decision(records, tag, commit, recipe, latest, args.force)
             else:
@@ -147,7 +152,12 @@ def main():
         print(f'https://copr.fedorainfracloud.org/coprs/{OWNER}/{PROJECT}/build/{build.id}/', flush=True)
         records.insert(0, {'id': build.id, 'state': 'pending', 'meta': meta})
         if args.wait:
-            watch(build.id)
+            try:
+                watch(build.id)
+            except subprocess.CalledProcessError:
+                failures.append((tag, build.id))
+    if failures:
+        raise SystemExit("Failed COPR builds: " + ", ".join(f"{tag} ({bid})" for tag, bid in failures))
 
 
 if __name__ == '__main__':
